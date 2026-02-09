@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "ar": "لا إله إلا الله",
+    "transliteration": "La ilaha illallah",
+    "en": "There is no god but Allah",
+    "fr": "Il n'y a de dieu que Allah",
+    "target": 100,
+    "icon": "💫"
+  },
+  {
+    "id": 2,
+    "ar": "الحمد لله",
+    "transliteration": "Alhamdulillah",
+    "en": "All praise is due to Allah",
+    "fr": "Toute louange appartient à Allah",
+    "target": 100,
+    "icon": "🙏"
+  },
+  {
+    "id": 3,
+    "ar": "سبحان الله",
+    "transliteration": "Subhana Allah",
+    "en": "Glory be to Allah",
+    "fr": "Gloire à Allah",
+    "target": 100,
+    "icon": "✨"
+  }
+]

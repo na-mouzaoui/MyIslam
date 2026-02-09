@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "ar": "اللهم أني أسألك العفو والعافية",
+    "transliteration": "Allahumma inni as'aluka al-afw wa al-aafiyah",
+    "en": "O Allah, I ask You for pardon and well-being",
+    "fr": "Ô Allah, je Te demande le pardon et le bien-être",
+    "icon": "🤲"
+  },
+  {
+    "id": 2,
+    "ar": "سبحان الله وبحمده",
+    "transliteration": "Subhana Allah wa bihamdihi",
+    "en": "Glory be to Allah and praise be to Him",
+    "fr": "Gloire à Allah et louanges à Lui",
+    "icon": "✨"
+  }
+]

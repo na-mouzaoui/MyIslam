@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "ar": "رياض الصالحين",
+    "en": "Riyadh as-Saliheen",
+    "fr": "Les Jardins des Vertueux",
+    "author": "الإمام النووي",
+    "cover": "bg-gradient-to-br from-emerald-600 to-teal-600",
+    "description": {
+      "ar": "كتاب جامع في الأحاديث والآثار",
+      "en": "A comprehensive collection of Hadith and narrations",
+      "fr": "Un recueil complet des Hadith et récits"
+    },
+    "pages": 500
+  },
+  {
+    "id": 2,
+    "ar": "صحيح البخاري",
+    "en": "Sahih Al-Bukhari",
+    "fr": "Sahih Al-Bukhari",
+    "author": "الإمام البخاري",
+    "cover": "bg-gradient-to-br from-blue-600 to-cyan-600",
+    "description": {
+      "ar": "أصح كتب السنة النبوية",
+      "en": "The most authentic collection of Hadith",
+      "fr": "Le recueil de Hadith le plus authentique"
+    },
+    "pages": 1200
+  },
+  {
+    "id": 3,
+    "ar": "معالم التنزيل",
+    "en": "Maaalim at-Tanzil",
+    "fr": "Les Repères de la Révélation",
+    "author": "الإمام البغوي",
+    "cover": "bg-gradient-to-br from-purple-600 to-pink-600",
+    "description": {
+      "ar": "تفسير قرآني كلاسيكي",
+      "en": "A classical Quranic exegesis",
+      "fr": "Un exégèse coranique classique"
+    },
+    "pages": 800
+  },
+  {
+    "id": 4,
+    "ar": "الجامع الصغير",
+    "en": "As-Suyuti Jami As-Sagir",
+    "fr": "La Petite Collection",
+    "author": "السيوطي",
+    "cover": "bg-gradient-to-br from-amber-600 to-orange-600",
+    "description": {
+      "ar": "مختصر شامل للأحاديث النبوية",
+      "en": "A concise comprehensive collection of Hadith",
+      "fr": "Un recueil concis de Hadith"
+    },
+    "pages": 600
+  }
+]
