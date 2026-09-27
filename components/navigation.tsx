@@ -1,10 +1,21 @@
 'use client'
 
 import Link from 'next/link'
-import { useLanguage } from '@/app/context/language-context'
-import { Button } from '@/components/ui/button'
-import { Settings, Home, BookOpen, Clock, Compass, Sparkles, Newspaper, Library } from 'lucide-react'
 import { usePathname } from 'next/navigation'
+import {
+  Home,
+  BookOpen,
+  Library,
+  Clock,
+  Compass,
+  Sparkles,
+  Newspaper,
+  Settings,
+  MoonStar,
+} from 'lucide-react'
+
+import { useLanguage } from '@/app/context/language-context'
+import { cn } from '@/lib/utils'
 
 const NAVIGATION_ITEMS = [
   { id: 'home', href: '/', icon: Home, labelKey: 'home' },
@@ -25,53 +36,66 @@ export function Navigation() {
   return (
     <>
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 border-t border-border bg-background md:hidden">
-        <div className="flex justify-around">
-          {NAVIGATION_ITEMS.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href
-            return (
-              <Link key={item.id} href={item.href} className="flex-1">
-                <Button
-                  variant={isActive ? 'default' : 'ghost'}
-                  size="icon"
-                  title={t(item.labelKey)}
-                  className="w-full h-14 rounded-none"
-                >
-                  <Icon className="w-5 h-5" />
-                </Button>
-              </Link>
-            )
-          })}
-        </div>
+      <nav className="fixed inset-x-3 bottom-3 z-30 flex items-center gap-1 rounded-2xl border border-border/60 bg-background/85 p-1.5 shadow-xl shadow-black/5 backdrop-blur-lg md:hidden">
+        {NAVIGATION_ITEMS.map((item) => {
+          const Icon = item.icon
+          const isActive = pathname === item.href
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              title={t(item.labelKey)}
+              aria-current={isActive ? 'page' : undefined}
+              className={cn(
+                'flex h-11 flex-1 items-center justify-center rounded-xl transition-all duration-200',
+                isActive
+                  ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/25'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+              )}
+            >
+              <Icon className="h-5 w-5" />
+            </Link>
+          )
+        })}
       </nav>
 
       {/* Desktop Side Navigation */}
-      <nav className="hidden md:fixed md:left-0 md:top-0 md:h-screen md:w-64 md:border-r md:border-border md:bg-background md:flex md:flex-col md:p-4 md:gap-2 md:overflow-y-auto">
-        <div className="mb-6 pb-4 border-b border-border">
-          <h1 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-            Islamic Companion
-          </h1>
-        </div>
+      <aside className="fixed start-0 top-0 z-30 hidden h-screen w-64 flex-col border-e border-border/60 bg-background/80 p-4 backdrop-blur-lg md:flex">
+        <Link href="/" className="mb-6 flex items-center gap-3 rounded-xl px-2 py-1.5">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30">
+            <MoonStar className="h-6 w-6" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-gradient truncate text-base font-extrabold leading-tight">Islamic Companion</p>
+            <p className="text-[11px] text-muted-foreground">Your daily companion</p>
+          </div>
+        </Link>
 
-        <div className="flex flex-col gap-2">
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
           {NAVIGATION_ITEMS.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
             return (
-              <Link key={item.id} href={item.href}>
-                <Button
-                  variant={isActive ? 'default' : 'outline'}
-                  className="w-full justify-start gap-3 text-base"
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{t(item.labelKey)}</span>
-                </Button>
+              <Link
+                key={item.id}
+                href={item.href}
+                aria-current={isActive ? 'page' : undefined}
+                className={cn(
+                  'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                  isActive
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/25'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                )}
+              >
+                <Icon className="h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                <span className="truncate">{t(item.labelKey)}</span>
               </Link>
             )
           })}
-        </div>
-      </nav>
+        </nav>
+
+        <p className="mt-4 px-3 text-[11px] text-muted-foreground/70">MyIslam · v1.0</p>
+      </aside>
     </>
   )
 }

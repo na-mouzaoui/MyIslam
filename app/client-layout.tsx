@@ -5,6 +5,7 @@ import React from "react"
 import { useEffect } from 'react'
 import { useLanguage } from './context/language-context'
 import { useTheme } from './context/theme-context'
+import { IslamicBackground } from '@/components/islamic-background'
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { language, direction } = useLanguage()
@@ -23,5 +24,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     }
   }, [isDark])
 
-  return <>{children}</>
+  return (
+    <>
+      <IslamicBackground />
+      {children}
+    </>
+  )
 }

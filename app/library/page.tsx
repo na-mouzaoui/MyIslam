@@ -2,10 +2,10 @@
 
 import { useLanguage } from '@/app/context/language-context'
 import { Navigation } from '@/components/navigation'
+import { PageHeader } from '@/components/page-header'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, BookOpen } from 'lucide-react'
-import Link from 'next/link'
+import { BookOpen } from 'lucide-react'
 import { useState } from 'react'
 import { PDFViewer } from '@/components/pdf-viewer'
 import books from '@/data/books.json'
@@ -27,18 +27,10 @@ export default function LibraryPage() {
   }
 
   return (
-    <main className="pb-24 md:pb-0 md:ml-20 islamic-pattern min-h-screen">
+    <main className="min-h-screen pb-28 md:ms-64">
       <Navigation />
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-rose-600 to-pink-600 text-white p-6 md:p-8 flex items-center gap-4">
-        <Link href="/">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-        </Link>
-        <h1 className="text-3xl font-bold">{t('library')}</h1>
-      </div>
+      <PageHeader title={t('library')} gradient="from-rose-600 to-pink-600" icon={BookOpen} />
 
       <div className="p-6 md:p-8 max-w-6xl mx-auto">
         <p className="text-muted-foreground mb-8">

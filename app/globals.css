@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Almarai:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Almarai:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -16,20 +16,88 @@ html[dir='rtl'] body {
   .text-balance {
     text-wrap: balance;
   }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent dark:from-emerald-400 dark:to-teal-300;
+  }
+
+  .glass {
+    @apply bg-card/70 backdrop-blur-md;
+  }
+
+  /* White geometric overlay used on coloured gradient headers */
+  .pattern-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'80'%20height%3D'80'%20viewBox%3D'0%200%2080%2080'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23ffffff'%20stroke-width%3D'1.1'%20stroke-opacity%3D'0.5'%3E%3Cpath%20d%3D'M28.284%2011.716%20H51.716%20L68.284%2028.284%20V51.716%20L51.716%2068.284%20H28.284%20L11.716%2051.716%20V28.284%20Z'%2F%3E%3Cpath%20d%3D'M68.284%2028.284%20L51.716%2068.284%20L11.716%2051.716%20L28.284%2011.716%20Z'%2F%3E%3Cpath%20d%3D'M68.284%2051.716%20L28.284%2068.284%20L11.716%2028.284%20L51.716%2011.716%20Z'%2F%3E%3Cpath%20d%3D'M80%2028.284%20L91.716%2040%20L80%2051.716%20L68.284%2040%20Z'%2F%3E%3Cpath%20d%3D'M0%2028.284%20L11.716%2040%20L0%2051.716%20L-11.716%2040%20Z'%2F%3E%3Cpath%20d%3D'M40%20-11.716%20L51.716%200%20L40%2011.716%20L28.284%200%20Z'%2F%3E%3Cpath%20d%3D'M40%2068.284%20L51.716%2080%20L40%2091.716%20L28.284%2080%20Z'%2F%3E%3Cpath%20d%3D'M0%20-11.716%20L11.716%200%20L0%2011.716%20L-11.716%200%20Z'%2F%3E%3Cpath%20d%3D'M80%20-11.716%20L91.716%200%20L80%2011.716%20L68.284%200%20Z'%2F%3E%3Cpath%20d%3D'M0%2068.284%20L11.716%2080%20L0%2091.716%20L-11.716%2080%20Z'%2F%3E%3Cpath%20d%3D'M80%2068.284%20L91.716%2080%20L80%2091.716%20L68.284%2080%20Z'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+    background-size: 80px 80px;
+  }
+
+  .animate-float {
+    animation: float 7s ease-in-out infinite;
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 140s linear infinite;
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
 }
 
-/* Geometric pattern background */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Islamic geometric pattern background
+   Octagon lattice with concentric 8-point stars (khatim), connector diamonds and a
+   center medallion, layered over a soft emerald wash and a fine dot grid.
+   Seamless 80x80 tile, light + dark variants. */
 @layer utilities {
   .islamic-pattern {
-    background-image: 
-      repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.02) 35px, rgba(0,0,0,.02) 70px),
-      repeating-linear-gradient(-45deg, transparent, transparent 35px, rgba(0,0,0,.02) 35px, rgba(0,0,0,.02) 70px);
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(circle at 50% -10%, rgba(16, 185, 129, 0.10) 0%, rgba(16, 185, 129, 0) 55%),
+      radial-gradient(circle at 50% 110%, rgba(16, 185, 129, 0.06) 0%, rgba(16, 185, 129, 0) 55%),
+      url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'80'%20height%3D'80'%20viewBox%3D'0%200%2080%2080'%3E%3Cg%20fill%3D'none'%20stroke%3D'%230b3b2e'%20stroke-width%3D'1.25'%20stroke-opacity%3D'0.10'%3E%3Cpath%20d%3D'M28.284%2011.716%20H51.716%20L68.284%2028.284%20V51.716%20L51.716%2068.284%20H28.284%20L11.716%2051.716%20V28.284%20Z'%2F%3E%3C%2Fg%3E%3Cg%20fill%3D'none'%20stroke%3D'%230b3b2e'%20stroke-width%3D'0.9'%20stroke-opacity%3D'0.09'%3E%3Cpath%20d%3D'M68.284%2028.284%20L51.716%2068.284%20L11.716%2051.716%20L28.284%2011.716%20Z'%2F%3E%3Cpath%20d%3D'M68.284%2051.716%20L28.284%2068.284%20L11.716%2028.284%20L51.716%2011.716%20Z'%2F%3E%3C%2Fg%3E%3Cg%20fill%3D'none'%20stroke%3D'%230b3b2e'%20stroke-width%3D'0.9'%20stroke-opacity%3D'0.09'%3E%3Cpath%20d%3D'M34.142%2025.858%20L54.142%2034.142%20L45.858%2054.142%20L25.858%2045.858%20Z'%2F%3E%3Cpath%20d%3D'M45.858%2025.858%20L54.142%2045.858%20L34.142%2054.142%20L25.858%2034.142%20Z'%2F%3E%3C%2Fg%3E%3Cg%20fill%3D'none'%20stroke%3D'%230b3b2e'%20stroke-width%3D'0.8'%20stroke-opacity%3D'0.08'%3E%3Cpath%20d%3D'M80%2028.284%20L91.716%2040%20L80%2051.716%20L68.284%2040%20Z'%2F%3E%3Cpath%20d%3D'M0%2028.284%20L11.716%2040%20L0%2051.716%20L-11.716%2040%20Z'%2F%3E%3Cpath%20d%3D'M40%20-11.716%20L51.716%200%20L40%2011.716%20L28.284%200%20Z'%2F%3E%3Cpath%20d%3D'M40%2068.284%20L51.716%2080%20L40%2091.716%20L28.284%2080%20Z'%2F%3E%3Cpath%20d%3D'M0%20-11.716%20L11.716%200%20L0%2011.716%20L-11.716%200%20Z'%2F%3E%3Cpath%20d%3D'M80%20-11.716%20L91.716%200%20L80%2011.716%20L68.284%200%20Z'%2F%3E%3Cpath%20d%3D'M0%2068.284%20L11.716%2080%20L0%2091.716%20L-11.716%2080%20Z'%2F%3E%3Cpath%20d%3D'M80%2068.284%20L91.716%2080%20L80%2091.716%20L68.284%2080%20Z'%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D'40'%20cy%3D'40'%20r%3D'1.4'%20fill%3D'%230b3b2e'%20fill-opacity%3D'0.10'%2F%3E%3C%2Fsvg%3E"),
+      radial-gradient(circle, hsl(var(--foreground) / 0.05) 1px, transparent 1.5px);
+    background-repeat: no-repeat, no-repeat, repeat, repeat;
+    background-size: 100% 100%, 100% 100%, 80px 80px, 22px 22px;
+    background-position: center top, center bottom, left top, left top;
   }
-  
+
   .dark .islamic-pattern {
-    background-image: 
-      repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.02) 35px, rgba(255,255,255,.02) 70px),
-      repeating-linear-gradient(-45deg, transparent, transparent 35px, rgba(255,255,255,.02) 35px, rgba(255,255,255,.02) 70px);
+    background-image:
+      radial-gradient(circle at 50% -10%, rgba(110, 231, 183, 0.14) 0%, rgba(110, 231, 183, 0) 55%),
+      radial-gradient(circle at 50% 110%, rgba(110, 231, 183, 0.08) 0%, rgba(110, 231, 183, 0) 55%),
+      url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'80'%20height%3D'80'%20viewBox%3D'0%200%2080%2080'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23d1fae5'%20stroke-width%3D'1.25'%20stroke-opacity%3D'0.10'%3E%3Cpath%20d%3D'M28.284%2011.716%20H51.716%20L68.284%2028.284%20V51.716%20L51.716%2068.284%20H28.284%20L11.716%2051.716%20V28.284%20Z'%2F%3E%3C%2Fg%3E%3Cg%20fill%3D'none'%20stroke%3D'%23d1fae5'%20stroke-width%3D'0.9'%20stroke-opacity%3D'0.09'%3E%3Cpath%20d%3D'M68.284%2028.284%20L51.716%2068.284%20L11.716%2051.716%20L28.284%2011.716%20Z'%2F%3E%3Cpath%20d%3D'M68.284%2051.716%20L28.284%2068.284%20L11.716%2028.284%20L51.716%2011.716%20Z'%2F%3E%3C%2Fg%3E%3Cg%20fill%3D'none'%20stroke%3D'%23d1fae5'%20stroke-width%3D'0.9'%20stroke-opacity%3D'0.09'%3E%3Cpath%20d%3D'M34.142%2025.858%20L54.142%2034.142%20L45.858%2054.142%20L25.858%2045.858%20Z'%2F%3E%3Cpath%20d%3D'M45.858%2025.858%20L54.142%2045.858%20L34.142%2054.142%20L25.858%2034.142%20Z'%2F%3E%3C%2Fg%3E%3Cg%20fill%3D'none'%20stroke%3D'%23d1fae5'%20stroke-width%3D'0.8'%20stroke-opacity%3D'0.08'%3E%3Cpath%20d%3D'M80%2028.284%20L91.716%2040%20L80%2051.716%20L68.284%2040%20Z'%2F%3E%3Cpath%20d%3D'M0%2028.284%20L11.716%2040%20L0%2051.716%20L-11.716%2040%20Z'%2F%3E%3Cpath%20d%3D'M40%20-11.716%20L51.716%200%20L40%2011.716%20L28.284%200%20Z'%2F%3E%3Cpath%20d%3D'M40%2068.284%20L51.716%2080%20L40%2091.716%20L28.284%2080%20Z'%2F%3E%3Cpath%20d%3D'M0%20-11.716%20L11.716%200%20L0%2011.716%20L-11.716%200%20Z'%2F%3E%3Cpath%20d%3D'M80%20-11.716%20L91.716%200%20L80%2011.716%20L68.284%200%20Z'%2F%3E%3Cpath%20d%3D'M0%2068.284%20L11.716%2080%20L0%2091.716%20L-11.716%2080%20Z'%2F%3E%3Cpath%20d%3D'M80%2068.284%20L91.716%2080%20L80%2091.716%20L68.284%2080%20Z'%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D'40'%20cy%3D'40'%20r%3D'1.4'%20fill%3D'%23d1fae5'%20fill-opacity%3D'0.10'%2F%3E%3C%2Fsvg%3E"),
+      radial-gradient(circle, hsl(var(--foreground) / 0.06) 1px, transparent 1.5px);
+    background-repeat: no-repeat, no-repeat, repeat, repeat;
+    background-size: 100% 100%, 100% 100%, 80px 80px, 22px 22px;
+    background-position: center top, center bottom, left top, left top;
+    background-attachment: fixed;
   }
 }
 
@@ -59,7 +127,7 @@ html[dir='rtl'] body {
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -109,7 +177,44 @@ html[dir='rtl'] body {
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+  }
+  ::selection {
+    @apply bg-emerald-500/25 text-foreground;
+  }
+  /* Refined scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.35) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
