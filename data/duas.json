@@ -5,7 +5,7 @@
     "transliteration": "Allahumma inni as'aluka al-afw wa al-aafiyah",
     "en": "O Allah, I ask You for pardon and well-being",
     "fr": "Ô Allah, je Te demande le pardon et le bien-être",
-    "icon": "🤲"
+    "icon": "supplication"
   },
   {
     "id": 2,
@@ -13,6 +13,6 @@
     "transliteration": "Subhana Allah wa bihamdihi",
     "en": "Glory be to Allah and praise be to Him",
     "fr": "Gloire à Allah et louanges à Lui",
-    "icon": "✨"
+    "icon": "praise"
   }
 ]

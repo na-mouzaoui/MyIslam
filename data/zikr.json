@@ -6,7 +6,7 @@
     "en": "There is no god but Allah",
     "fr": "Il n'y a de dieu que Allah",
     "target": 100,
-    "icon": "💫"
+    "icon": "tawhid"
   },
   {
     "id": 2,
@@ -15,7 +15,7 @@
     "en": "All praise is due to Allah",
     "fr": "Toute louange appartient à Allah",
     "target": 100,
-    "icon": "🙏"
+    "icon": "praise"
   },
   {
     "id": 3,
@@ -24,6 +24,6 @@
     "en": "Glory be to Allah",
     "fr": "Gloire à Allah",
     "target": 100,
-    "icon": "✨"
+    "icon": "glorification"
   }
 ]

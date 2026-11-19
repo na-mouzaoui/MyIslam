@@ -1,195 +1,319 @@
 'use client'
 
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { CircleAlert, Compass, MapPin, RefreshCw } from 'lucide-react'
+
 import { useLanguage } from '@/app/context/language-context'
 import { Navigation } from '@/components/navigation'
 import { PageHeader } from '@/components/page-header'
-import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Compass, MapPin } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Card } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
+
+
+const MECCA = { lat: 21.4225, lon: 39.8262 }
+
+function bearingToMecca(lat: number, lon: number): number {
+  const latRad = (lat * Math.PI) / 180
+  const lonRad = (lon * Math.PI) / 180
+  const meccaLatRad = (MECCA.lat * Math.PI) / 180
+  const meccaLonRad = (MECCA.lon * Math.PI) / 180
+
+  const y = Math.sin(meccaLonRad - lonRad) * Math.cos(meccaLatRad)
+  const x =
+    Math.cos(latRad) * Math.sin(meccaLatRad) -
+    Math.sin(latRad) * Math.cos(meccaLatRad) * Math.cos(meccaLonRad - lonRad)
+
+  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360
+}
+
+type CompassState = 'idle' | 'active' | 'denied' | 'unsupported'
 
 export default function QiblaPage() {
   const { t, language } = useLanguage()
-  const [deviceOrientation, setDeviceOrientation] = useState(0)
+  const [deviceHeading, setDeviceHeading] = useState(0)
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null)
-  const [qiblaAngle, setQiblaAngle] = useState(0)
-  const [hasPermission, setHasPermission] = useState(false)
-  const [compassSupport, setCompassSupport] = useState(true)
+  const [geoError, setGeoError] = useState(false)
+  const [compassState, setCompassState] = useState<CompassState>('idle')
+
+  const mounted = useRef(true)
 
   useEffect(() => {
-    // Get user location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords
-        setLocation({ lat: latitude, lon: longitude })
-        calculateQiblaAngle(latitude, longitude)
-      })
+    mounted.current = true
+    return () => {
+      mounted.current = false
     }
   }, [])
 
-  const calculateQiblaAngle = (lat: number, lon: number) => {
-    // Mecca coordinates
-    const meckaLat = 21.4225
-    const meckaLon = 39.8262
-
-    const latRad = (lat * Math.PI) / 180
-    const lonRad = (lon * Math.PI) / 180
-    const meckaLatRad = (meckaLat * Math.PI) / 180
-    const meckaLonRad = (meckaLon * Math.PI) / 180
-
-    const y = Math.sin(meckaLonRad - lonRad) * Math.cos(meckaLatRad)
-    const x = Math.cos(latRad) * Math.sin(meckaLatRad) - Math.sin(latRad) * Math.cos(meckaLatRad) * Math.cos(meckaLonRad - lonRad)
-
-    const angle = (Math.atan2(y, x) * 180) / Math.PI
-    setQiblaAngle((angle + 360) % 360)
-  }
-
-  const requestPermission = async () => {
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-      try {
-        const permission = await (DeviceOrientationEvent as any).requestPermission()
-        if (permission === 'granted') {
-          setHasPermission(true)
-          window.addEventListener('deviceorientation', handleDeviceOrientation)
-        }
-      } catch (error) {
-        setCompassSupport(false)
-      }
-    } else {
-      setHasPermission(true)
-      window.addEventListener('deviceorientation', handleDeviceOrientation)
+  const locate = useCallback(() => {
+    if (!navigator.geolocation) {
+      setGeoError(true)
+      return
     }
+
+    setGeoError(false)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (!mounted.current) return
+        setLocation({ lat: position.coords.latitude, lon: position.coords.longitude })
+      },
+      () => {
+        if (mounted.current) setGeoError(true)
+      },
+      { timeout: 8000, maximumAge: 10 * 60 * 1000 },
+    )
+  }, [])
+
+  useEffect(() => {
+    locate()
+  }, [locate])
+
+  useEffect(() => {
+    if (compassState !== 'active') return
+
+    const listener = (event: DeviceOrientationEvent) => {
+      const webkitHeading = Reflect.get(event, 'webkitCompassHeading')
+      setDeviceHeading(
+        typeof webkitHeading === 'number' ? webkitHeading : (event.alpha ?? 0),
+      )
+    }
+
+    window.addEventListener('deviceorientation', listener)
+    return () => window.removeEventListener('deviceorientation', listener)
+  }, [compassState])
+
+  const enableCompass = async () => {
+    if (typeof DeviceOrientationEvent === 'undefined') {
+      setCompassState('unsupported')
+      return
+    }
+
+    // iOS exposes requestPermission on the constructor; other browsers do not.
+    const orientationApi: unknown = DeviceOrientationEvent
+
+    if (
+      typeof orientationApi === 'object' &&
+      orientationApi !== null &&
+      'requestPermission' in orientationApi &&
+      typeof orientationApi.requestPermission === 'function'
+    ) {
+      try {
+        const permission: unknown = await orientationApi.requestPermission()
+        setCompassState(permission === 'granted' ? 'active' : 'denied')
+      } catch {
+        setCompassState('denied')
+      }
+      return
+    }
+
+    setCompassState('active')
   }
 
-  const handleDeviceOrientation = (event: DeviceOrientationEvent) => {
-    const alpha = event.alpha || 0
-    setDeviceOrientation(alpha)
-  }
-
-  const compassRotation = (deviceOrientation - qiblaAngle + 360) % 360
+  const qiblaAngle = location ? bearingToMecca(location.lat, location.lon) : null
 
   return (
-    <main className="min-h-screen pb-28 md:ms-64">
+    <main
+      id="main-content"
+      className="min-h-screen pb-[calc(5.5rem_+_env(safe-area-inset-bottom))] md:ms-64 md:pb-12"
+    >
       <Navigation />
 
-      <PageHeader title={t('qibla')} gradient="from-purple-600 to-indigo-600" icon={Compass} />
+      <PageHeader title={t('qibla')} icon={Compass} />
 
-      <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-6">
-        {/* Location Info */}
-        {location && (
-          <Card className="p-4 flex items-center gap-2 text-sm">
-            <MapPin className="w-4 h-4" />
-            {language === 'ar'
-              ? `الموقع: ${location.lat.toFixed(2)}°, ${location.lon.toFixed(2)}°`
-              : language === 'fr'
-                ? `Emplacement: ${location.lat.toFixed(2)}°, ${location.lon.toFixed(2)}°`
-                : `Location: ${location.lat.toFixed(2)}°, ${location.lon.toFixed(2)}°`}
-          </Card>
-        )}
+      <div className="mx-auto max-w-4xl space-y-5 px-6 py-8 md:px-8">
+        {/* Location */}
+        <Card className="flex items-center gap-3 p-4 text-sm" role="status">
+          {geoError ? (
+            <CircleAlert className="h-4 w-4 shrink-0 text-destructive" aria-hidden="true" />
+          ) : (
+            <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          )}
 
-        {/* Qibla Angle Info */}
-        <Card className="p-6 text-center">
-          <p className="text-muted-foreground mb-2">
-            {language === 'ar'
-              ? 'اتجاه القبلة'
-              : language === 'fr'
-                ? 'Direction de la Qibla'
-                : 'Qibla Direction'}
+          <span className="min-w-0 flex-1">
+            {geoError ? (
+              <span className="font-medium">{t('request_location')}</span>
+            ) : location ? (
+              <span className="text-muted-foreground">
+                <span className="font-medium text-foreground">{t('location')}</span>{' '}
+                <span dir="ltr" className="inline-block tabular-nums">
+                  {location.lat.toFixed(2)}°, {location.lon.toFixed(2)}°
+                </span>
+              </span>
+            ) : (
+              <span className="text-muted-foreground">{t('locating')}</span>
+            )}
+          </span>
+        </Card>
+
+        {/* Bearing */}
+        <Card className="p-5 text-center md:p-6">
+          <p className="text-sm font-medium text-muted-foreground">{t('qibla_direction')}</p>
+          <p
+            className={cn(
+              'mt-1 font-display font-semibold tabular-nums',
+              qiblaAngle !== null
+                ? 'text-5xl text-gold-ink dark:text-gold-light'
+                : 'text-2xl text-muted-foreground',
+            )}
+          >
+            {qiblaAngle !== null ? `${qiblaAngle.toFixed(1)}°` : '—'}
           </p>
-          <p className="text-4xl font-bold">{qiblaAngle.toFixed(1)}°</p>
+          {compassState === 'active' ? (
+            <p className="mt-2 text-xs tabular-nums text-muted-foreground">
+              {language === 'ar' ? 'اتجاه الجهاز' : language === 'fr' ? 'Cap du téléphone' : 'Device heading'}
+              {' · '}
+              {deviceHeading.toFixed(0)}°
+            </p>
+          ) : null}
         </Card>
 
         {/* Compass */}
-        {!hasPermission && compassSupport ? (
-          <Card className="p-8 text-center space-y-4">
-            <Compass className="w-12 h-12 mx-auto text-muted-foreground" />
-            <p className="text-muted-foreground mb-4">
+        {geoError ? (
+          <Card className="flex flex-col items-center gap-3 p-8 text-center" role="alert">
+            <CircleAlert className="h-8 w-8 text-destructive" aria-hidden="true" />
+            <p className="max-w-md text-pretty text-sm text-muted-foreground">
               {language === 'ar'
-                ? 'لتفعيل البوصلة، يرجى السماح بالوصول إلى اتجاه الجهاز'
+                ? 'لا يمكن حساب اتجاه القبلة بدون موقعك. اسمح بالوصول إلى الموقع ثم أعد المحاولة.'
                 : language === 'fr'
-                  ? 'Pour activer la boussole, veuillez autoriser l\'accès à l\'orientation du téléphone'
-                  : 'To enable compass, please allow access to device orientation'}
+                  ? 'Impossible de calculer la Qibla sans votre position. Autorisez la localisation puis réessayez.'
+                  : 'The Qibla bearing cannot be calculated without your position. Allow location access and try again.'}
             </p>
-            <Button size="lg" onClick={requestPermission}>
-              {language === 'ar' ? 'تفعيل البوصلة' : language === 'fr' ? 'Activer la boussole' : 'Enable Compass'}
+            <Button variant="outline" className="gap-2" onClick={locate}>
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              {t('retry')}
+            </Button>
+          </Card>
+        ) : compassState !== 'active' ? (
+          <Card className="flex flex-col items-center gap-4 p-8 text-center">
+            <Compass className="h-10 w-10 text-gold-ink dark:text-gold-light" aria-hidden="true" />
+            <p className="max-w-md text-pretty text-sm text-muted-foreground">
+              {compassState === 'denied' || compassState === 'unsupported'
+                ? language === 'ar'
+                  ? 'تعذّر تفعيل البوصلة على هذا الجهاز أو تم رفض الإذن.'
+                  : language === 'fr'
+                    ? 'La boussole n’a pas pu être activée sur cet appareil, ou l’autorisation a été refusée.'
+                    : 'The compass could not be enabled on this device, or permission was denied.'
+                : t('compass_request')}
+            </p>
+            <Button onClick={enableCompass} className="gap-2">
+              <Compass className="h-4 w-4" aria-hidden="true" />
+              {t('enable_compass')}
             </Button>
           </Card>
         ) : (
-          <Card className="p-8">
-            <div className="relative w-full aspect-square max-w-sm mx-auto">
-              {/* Compass Circle */}
-              <svg viewBox="0 0 400 400" className="w-full h-full">
-                {/* Outer circle */}
-                <circle cx="200" cy="200" r="190" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground" />
+          <Card className="p-6 md:p-8">
+            <div className="relative mx-auto aspect-square w-full max-w-sm">
+              <svg
+                viewBox="0 0 400 400"
+                className="h-full w-full"
+                role="img"
+                aria-label={`${t('qibla_direction')} ${qiblaAngle?.toFixed(1)}°`}
+              >
+                <circle
+                  cx="200"
+                  cy="200"
+                  r="190"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="text-border"
+                />
+                <circle
+                  cx="200"
+                  cy="200"
+                  r="176"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                  strokeDasharray="2 6"
+                  className="text-border"
+                />
 
-                {/* Cardinal directions */}
-                <text x="200" y="30" textAnchor="middle" className="text-lg font-bold fill-foreground" fontSize="24">
-                  N
-                </text>
-                <text x="370" y="205" textAnchor="middle" className="text-lg font-bold fill-foreground" fontSize="24">
-                  E
-                </text>
-                <text x="200" y="380" textAnchor="middle" className="text-lg font-bold fill-foreground" fontSize="24">
-                  S
-                </text>
-                <text x="30" y="205" textAnchor="middle" className="text-lg font-bold fill-foreground" fontSize="24">
-                  W
-                </text>
+                {/* The dial rotates against the device heading so N stays true north. */}
+                <g
+                  style={{
+                    transform: `rotate(${-deviceHeading}deg)`,
+                    transformOrigin: '200px 200px',
+                    transition: 'transform 120ms ease-out',
+                  }}
+                >
+                  {/* 10° ticks */}
+                  {Array.from({ length: 36 }).map((_, index) => {
+                    const deg = index * 10
+                    const rad = (deg * Math.PI) / 180 - Math.PI / 2
+                    const major = deg % 30 === 0
+                    const outer = 190
+                    const inner = major ? 176 : 183
+                    return (
+                      <line
+                        key={deg}
+                        x1={200 + outer * Math.cos(rad)}
+                        y1={200 + outer * Math.sin(rad)}
+                        x2={200 + inner * Math.cos(rad)}
+                        y2={200 + inner * Math.sin(rad)}
+                        stroke="currentColor"
+                        strokeWidth={major ? 2 : 1}
+                        className={major ? 'text-muted-foreground' : 'text-border'}
+                      />
+                    )
+                  })}
 
-                {/* Degree markers */}
-                {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => {
-                  const rad = (deg * Math.PI) / 180
-                  const x1 = 200 + 170 * Math.cos(rad - Math.PI / 2)
-                  const y1 = 200 + 170 * Math.sin(rad - Math.PI / 2)
-                  const x2 = 200 + 190 * Math.cos(rad - Math.PI / 2)
-                  const y2 = 200 + 190 * Math.sin(rad - Math.PI / 2)
-                  return <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="2" className="text-muted-foreground" />
-                })}
+                  {[
+                    { label: 'N', x: 200, y: 42 },
+                    { label: 'E', x: 358, y: 207 },
+                    { label: 'S', x: 200, y: 372 },
+                    { label: 'W', x: 42, y: 207 },
+                  ].map((cardinal) => (
+                    <text
+                      key={cardinal.label}
+                      x={cardinal.x}
+                      y={cardinal.y}
+                      textAnchor="middle"
+                      fontSize="22"
+                      fontWeight="600"
+                      fill="currentColor"
+                      className={
+                        cardinal.label === 'N'
+                          ? 'fill-gold-ink dark:fill-gold-light'
+                          : 'fill-muted-foreground'
+                      }
+                    >
+                      {cardinal.label}
+                    </text>
+                  ))}
 
-                {/* Rotating needle (transform applied with style) */}
-                <g style={{ transform: `rotate(${compassRotation}deg)`, transformOrigin: '200px 200px', transition: 'transform 0.1s ease-out' }}>
-                  {/* Qibla direction - Red needle */}
-                  <line x1="200" y1="200" x2="200" y2="80" stroke="#dc2626" strokeWidth="3" />
-                  <circle cx="200" cy="70" r="8" fill="#dc2626" />
+                  {/* Qibla needle, fixed on the dial at the true bearing */}
+                  <g transform={`rotate(${qiblaAngle ?? 0} 200 200)`}>
+                    <line x1="200" y1="200" x2="200" y2="96" stroke="#b91c1c" strokeWidth="3" />
+                    <polygon points="200,72 190,98 210,98" fill="#b91c1c" />
+                  </g>
                 </g>
 
-                {/* Device orientation - Blue reference */}
-                <line x1="200" y1="200" x2="200" y2="100" stroke="currentColor" strokeWidth="2" strokeDasharray="5,5" className="text-muted-foreground" />
-                <circle cx="200" cy="95" r="6" fill="currentColor" className="text-muted-foreground" />
-
-                {/* Center point */}
-                <circle cx="200" cy="200" r="8" fill="currentColor" className="text-foreground" />
+                <circle cx="200" cy="200" r="7" className="fill-foreground" />
+                <circle
+                  cx="200"
+                  cy="200"
+                  r="14"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="text-border"
+                />
               </svg>
-
-              {/* Legend */}
-              <div className="absolute bottom-4 left-4 right-4 space-y-1 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-600" />
-                  <span className="text-muted-foreground">
-                    {language === 'ar' ? 'القبلة' : language === 'fr' ? 'Qibla' : 'Qibla'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 border-2 border-dashed border-muted-foreground" />
-                  <span className="text-muted-foreground">
-                    {language === 'ar' ? 'الشمال' : language === 'fr' ? 'Nord' : 'North'}
-                  </span>
-                </div>
-              </div>
             </div>
+
+            <div className="mx-auto mt-4 flex max-w-sm flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-700" aria-hidden="true" />
+                {t('qibla')}
+              </span>
+            </div>
+
+            <p className="mx-auto mt-5 max-w-md text-pretty text-center text-sm text-muted-foreground">
+              {t('point_towards')}
+            </p>
           </Card>
         )}
-
-        {/* Instructions */}
-        <Card className="p-6 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950 dark:to-indigo-950">
-          <p className="text-sm text-muted-foreground">
-            {language === 'ar'
-              ? 'وجّه هاتفك نحو الاتجاه الأحمر للصلاة'
-              : language === 'fr'
-                ? 'Pointez votre téléphone vers la direction rouge pour prier'
-                : 'Point your phone towards the red arrow to face Qibla'}
-          </p>
-        </Card>
       </div>
     </main>
   )

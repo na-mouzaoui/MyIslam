@@ -5,7 +5,7 @@
     "en": "Riyadh as-Saliheen",
     "fr": "Les Jardins des Vertueux",
     "author": "الإمام النووي",
-    "cover": "bg-gradient-to-br from-emerald-600 to-teal-600",
+    "cover": "bg-gradient-to-br from-[#1f1b14] to-[#3a3122]",
     "description": {
       "ar": "كتاب جامع في الأحاديث والآثار",
       "en": "A comprehensive collection of Hadith and narrations",
@@ -19,7 +19,7 @@
     "en": "Sahih Al-Bukhari",
     "fr": "Sahih Al-Bukhari",
     "author": "الإمام البخاري",
-    "cover": "bg-gradient-to-br from-blue-600 to-cyan-600",
+    "cover": "bg-gradient-to-br from-[#8a6a24] to-[#5f4a1a]",
     "description": {
       "ar": "أصح كتب السنة النبوية",
       "en": "The most authentic collection of Hadith",
@@ -33,7 +33,7 @@
     "en": "Maaalim at-Tanzil",
     "fr": "Les Repères de la Révélation",
     "author": "الإمام البغوي",
-    "cover": "bg-gradient-to-br from-purple-600 to-pink-600",
+    "cover": "bg-gradient-to-br from-[#5b4a2a] to-[#332a17]",
     "description": {
       "ar": "تفسير قرآني كلاسيكي",
       "en": "A classical Quranic exegesis",
@@ -47,7 +47,7 @@
     "en": "As-Suyuti Jami As-Sagir",
     "fr": "La Petite Collection",
     "author": "السيوطي",
-    "cover": "bg-gradient-to-br from-amber-600 to-orange-600",
+    "cover": "bg-gradient-to-br from-[#6b6a3e] to-[#3d3c22]",
     "description": {
       "ar": "مختصر شامل للأحاديث النبوية",
       "en": "A concise comprehensive collection of Hadith",

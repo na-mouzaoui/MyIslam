@@ -1,20 +1,47 @@
 'use client'
 
+import { useState } from 'react'
+import {
+  ArrowLeft,
+  Check,
+  ChevronRight,
+  Minus,
+  MoonStar,
+  Plus,
+  RotateCcw,
+  Sparkles,
+  Sun,
+} from 'lucide-react'
+
 import { useLanguage } from '@/app/context/language-context'
 import { Navigation } from '@/components/navigation'
 import { PageHeader } from '@/components/page-header'
-import { Card } from '@/components/ui/card'
+import { ClickableCard } from '@/components/clickable-card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Plus, Minus, Sparkles } from 'lucide-react'
+import { Card } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { cn } from '@/lib/utils'
 import zikr from '@/data/zikr.json'
-import { useState } from 'react'
+
+type Zikr = (typeof zikr)[0]
+
+const ZIKR_ICONS = {
+  tawhid: MoonStar,
+  praise: Sun,
+  glorification: Sparkles,
+} as const
+
+function zikrIcon(formula: Zikr) {
+  const key = formula.icon as keyof typeof ZIKR_ICONS
+  return ZIKR_ICONS[key] ?? Sparkles
+}
 
 export default function ZikrPage() {
   const { t, language } = useLanguage()
   const [counts, setCounts] = useState<Record<number, number>>(
-    Object.fromEntries(zikr.map((z) => [z.id, 0]))
+    Object.fromEntries(zikr.map((z) => [z.id, 0])),
   )
-  const [selectedZikr, setSelectedZikr] = useState<(typeof zikr)[0] | null>(null)
+  const [selectedZikr, setSelectedZikr] = useState<Zikr | null>(null)
 
   const increment = (id: number, target: number) => {
     setCounts((prev) => ({
@@ -31,22 +58,25 @@ export default function ZikrPage() {
   }
 
   const reset = (id: number) => {
-    setCounts((prev) => ({
-      ...prev,
-      [id]: 0,
-    }))
+    setCounts((prev) => ({ ...prev, [id]: 0 }))
   }
 
+  const selectedCount = selectedZikr ? (counts[selectedZikr.id] ?? 0) : 0
+  const selectedDone = selectedZikr ? selectedCount >= selectedZikr.target : false
+
   return (
-    <main className="min-h-screen pb-28 md:ms-64">
+    <main
+      id="main-content"
+      className="min-h-screen pb-[calc(5.5rem_+_env(safe-area-inset-bottom))] md:ms-64 md:pb-12"
+    >
       <Navigation />
 
-      <PageHeader title={t('zikr')} gradient="from-green-600 to-emerald-600" icon={Sparkles} />
+      <PageHeader title={t('zikr')} icon={Sparkles} />
 
-      <div className="p-6 md:p-8 max-w-4xl mx-auto">
+      <div className="mx-auto max-w-4xl px-6 py-8 md:px-8">
         {!selectedZikr ? (
           <>
-            <p className="text-muted-foreground mb-6">
+            <p className="mb-6 max-w-2xl text-pretty text-sm text-muted-foreground md:text-base">
               {language === 'ar'
                 ? 'اختر صيغة الذكر لتبدأ العد'
                 : language === 'fr'
@@ -54,114 +84,161 @@ export default function ZikrPage() {
                   : 'Choose a zikr formula to start counting'}
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {zikr.map((z) => (
-                <Card
-                  key={z.id}
-                  className="p-6 cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => setSelectedZikr(z)}
-                >
-                  <div className="text-center space-y-3">
-                    <span className="text-4xl block">{z.icon}</span>
-                    <p className="text-lg font-semibold">{language === 'ar' ? z.ar : z[language as 'en' | 'fr']}</p>
-                    <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                      <span>0 / {z.target}</span>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {zikr.map((formula) => {
+                const Icon = zikrIcon(formula)
+                const count = counts[formula.id] ?? 0
+                const done = count >= formula.target
+                const progress = Math.min(100, Math.round((count / formula.target) * 100))
+
+                return (
+                  <ClickableCard
+                    key={formula.id}
+                    onClick={() => setSelectedZikr(formula)}
+                    aria-label={`${language === 'ar' ? formula.ar : formula[language]} — ${count} / ${formula.target}`}
+                    className="flex flex-col gap-4"
+                  >
+                    <span className="flex items-start justify-between gap-3">
+                      <span
+                        className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/12 text-gold-ink dark:bg-gold/15 dark:text-gold-light"
+                        aria-hidden="true"
+                      >
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      {done ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gold/12 px-2 py-0.5 text-xs font-medium text-gold-ink dark:bg-gold/15 dark:text-gold-light">
+                          <Check className="h-3 w-3" aria-hidden="true" />
+                          {t('reached_goal')}
+                        </span>
+                      ) : (
+                        <ChevronRight
+                          className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </span>
+
+                    <span className="block font-arabic-display text-2xl leading-loose">
+                      {formula.ar}
+                    </span>
+
+                    <span className="block space-y-2">
+                      <span
+                        className="block h-1.5 w-full overflow-hidden rounded-full bg-secondary"
+                        aria-hidden="true"
+                      >
+                        <span
+                          className="block h-full rounded-full bg-primary transition-[width] duration-300"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </span>
+                      <span className="block text-xs font-medium tabular-nums text-muted-foreground">
+                        {count} / {formula.target}
+                      </span>
+                    </span>
+                  </ClickableCard>
+                )
+              })}
             </div>
           </>
         ) : (
-          <Card className="p-8">
-            <Button
-              variant="ghost"
-              className="mb-6"
-              onClick={() => setSelectedZikr(null)}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+          <Card className="p-6 md:p-8">
+            <Button variant="ghost" className="-ms-2 mb-6" onClick={() => setSelectedZikr(null)}>
+              <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
               {t('close')}
             </Button>
 
-            <div className="space-y-8">
-              {/* Zikr Text */}
-              <div className="text-center p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
-                <p className="text-4xl font-bold text-green-700 dark:text-green-300 leading-relaxed">
+            <div className="space-y-6">
+              <div className="rounded-xl bg-gold/10 p-6 text-center dark:bg-gold/12">
+                <p className="font-arabic-display text-4xl leading-[1.8] text-foreground md:text-5xl">
                   {selectedZikr.ar}
                 </p>
               </div>
 
-              {language !== 'ar' && (
+              {language !== 'ar' ? (
                 <>
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-sm font-semibold text-muted-foreground mb-2">
-                      {language === 'fr' ? 'Translittération' : 'Transliteration'}
-                    </p>
-                    <p className="text-lg italic">{selectedZikr.transliteration}</p>
-                  </div>
+                  <section>
+                    <h2 className="mb-2 text-balance text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t('transliteration')}
+                    </h2>
+                    <p className="text-base italic leading-relaxed">{selectedZikr.transliteration}</p>
+                  </section>
 
-                  <div>
-                    <p className="text-sm font-semibold text-muted-foreground mb-3">
-                      {language === 'fr' ? 'Traduction' : 'Translation'}
-                    </p>
-                    <p className="text-xl leading-relaxed">
-                      {selectedZikr[language as 'en' | 'fr']}
-                    </p>
-                  </div>
+                  <section>
+                    <h2 className="mb-2 text-balance text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t('translation')}
+                    </h2>
+                    <p className="text-pretty text-lg leading-relaxed">{selectedZikr[language]}</p>
+                  </section>
                 </>
-              )}
+              ) : null}
 
-              {/* Counter */}
-              <div className="space-y-4">
+              <section className="space-y-4 rounded-xl border border-border/60 p-5">
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {language === 'ar'
-                      ? 'عدد التكرارات'
-                      : language === 'fr'
-                        ? 'Nombre de répétitions'
-                        : 'Repetitions'}
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t('repetitions')}
                   </p>
-                  <div className="text-6xl font-bold text-green-600 dark:text-green-400">
-                    {counts[selectedZikr.id]} / {selectedZikr.target}
-                  </div>
-                  {counts[selectedZikr.id] === selectedZikr.target && (
-                    <p className="text-green-600 dark:text-green-400 font-semibold mt-3 text-lg">
-                      {language === 'ar'
-                        ? 'ما شاء الله! لقد وصلت إلى الهدف'
-                        : language === 'fr'
-                          ? 'Mashallah! Vous avez atteint votre objectif'
-                          : 'Mashallah! You reached your goal'}
-                    </p>
-                  )}
+                  <p
+                    role="status"
+                    aria-live="polite"
+                    className={cn(
+                      'text-5xl font-bold tabular-nums',
+                      selectedDone ? 'text-gold-ink dark:text-gold-light' : 'text-foreground',
+                    )}
+                  >
+                    {selectedCount}
+                    <span className="text-2xl font-medium text-muted-foreground">
+                      {' '}
+                      / {selectedZikr.target}
+                    </span>
+                  </p>
+                  <Progress
+                    value={Math.min(100, Math.round((selectedCount / selectedZikr.target) * 100))}
+                    className="mt-3 h-1.5"
+                    aria-label={t('repetitions')}
+                  />
                 </div>
 
-                <div className="flex gap-2 justify-center">
+                {selectedDone ? (
+                  <p className="flex items-center justify-center gap-2 text-sm font-medium text-gold-ink dark:text-gold-light">
+                    <Check className="h-4 w-4" aria-hidden="true" />
+                    {t('reached_goal')}
+                  </p>
+                ) : null}
+
+                <div className="flex items-center justify-center gap-2">
                   <Button
                     size="lg"
                     variant="outline"
-                    className="h-16 w-16 text-xl bg-transparent"
+                    className="h-14 w-14"
                     onClick={() => decrement(selectedZikr.id)}
+                    disabled={selectedCount === 0}
+                    aria-label={t('decrease')}
                   >
-                    <Minus className="w-6 h-6" />
+                    <Minus className="h-5 w-5" aria-hidden="true" />
                   </Button>
+
                   <Button
                     size="lg"
-                    className="h-16 px-8"
+                    className="h-14 min-w-[9rem] gap-2"
                     onClick={() => increment(selectedZikr.id, selectedZikr.target)}
+                    disabled={selectedDone}
                   >
-                    <Plus className="w-6 h-6 mr-2" />
-                    {language === 'ar' ? 'زيادة' : language === 'fr' ? 'Ajouter' : 'Add'}
+                    <Plus className="h-5 w-5" aria-hidden="true" />
+                    {selectedDone ? t('reached_goal') : t('add')}
                   </Button>
                 </div>
 
                 <Button
-                  variant="outline"
-                  className="w-full bg-transparent"
+                  variant="ghost"
+                  className="w-full gap-2"
                   onClick={() => reset(selectedZikr.id)}
+                  disabled={selectedCount === 0}
                 >
-                  {language === 'ar' ? 'إعادة تعيين' : language === 'fr' ? 'Réinitialiser' : 'Reset'}
+                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                  {t('reset')}
                 </Button>
-              </div>
+              </section>
             </div>
           </Card>
         )}

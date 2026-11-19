@@ -1,8 +1,13 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 
-type Language = 'ar' | 'fr' | 'en'
+import {
+  COOKIE_KEYS,
+  STORAGE_KEYS,
+  writeCookie,
+  type Language,
+} from '@/lib/theme'
 
 interface LanguageContextType {
   language: Language
@@ -35,6 +40,7 @@ const translations: Record<Language, Record<string, string>> = {
     reached_goal: 'ما شاء الله! لقد وصلت إلى الهدف',
     reset: 'إعادة تعيين',
     add: 'زيادة',
+    decrease: 'إنقاص',
     location: 'الموقع',
     hijri_date: 'التاريخ الهجري',
     loading: 'جاري التحميل...',
@@ -52,6 +58,36 @@ const translations: Record<Language, Record<string, string>> = {
     share: 'مشاركة',
     transliteration: 'النطق',
     translation: 'الترجمة',
+    navigation: 'التنقل',
+    brand_tagline: 'رفيقك اليومي',
+    more: 'المزيد',
+    more_description: 'كل الأقسام والإعدادات',
+    nav_practice: 'العبادات',
+    nav_knowledge: 'المعرفة',
+    back: 'رجوع',
+    skip_to_content: 'تخطَّ إلى المحتوى',
+    copy: 'نسخ',
+    copied: 'تم النسخ',
+    copy_failed: 'تعذّر النسخ',
+    retry: 'إعادة المحاولة',
+    refresh: 'تحديث',
+    coming_soon: 'قريباً',
+    coming_soon_desc:
+      'نعمل على قارئ كامل للقرآن مع جميع السور والآيات والترجمات. سيكون متاحاً هنا.',
+    today: 'اليوم',
+    locating: 'جارٍ تحديد موقعك…',
+    location_denied: 'تم رفض الوصول إلى الموقع',
+    default_location: 'الموقع الافتراضي: مكة المكرمة',
+    calendar_type: 'نوع التقويم',
+    hijri: 'هجري',
+    gregorian: 'ميلادي',
+    page: 'صفحة',
+    bookmark: 'علامة مرجعية',
+    previous: 'السابق',
+    next: 'التالي',
+    share_copied: 'تم نسخ الرابط',
+    empty_bookmarks: 'لا توجد علامات مرجعية بعد',
+    notifications_soon: 'الإشعارات لكل قسم قيد التطوير.',
   },
   fr: {
     home: 'Accueil',
@@ -76,6 +112,7 @@ const translations: Record<Language, Record<string, string>> = {
     reached_goal: 'Mashallah! Vous avez atteint votre objectif',
     reset: 'Réinitialiser',
     add: 'Ajouter',
+    decrease: 'Retirer',
     location: 'Emplacement',
     hijri_date: 'Date Hijri',
     loading: 'Chargement...',
@@ -93,6 +130,36 @@ const translations: Record<Language, Record<string, string>> = {
     share: 'Partager',
     transliteration: 'Translittération',
     translation: 'Traduction',
+    navigation: 'Navigation',
+    brand_tagline: 'Compagnon quotidien',
+    more: 'Plus',
+    more_description: 'Toutes les sections et les réglages',
+    nav_practice: 'Pratique',
+    nav_knowledge: 'Connaissance',
+    back: 'Retour',
+    skip_to_content: 'Aller au contenu',
+    copy: 'Copier',
+    copied: 'Copié',
+    copy_failed: 'Copie impossible',
+    retry: 'Réessayer',
+    refresh: 'Actualiser',
+    coming_soon: 'Bientôt',
+    coming_soon_desc:
+      'Nous préparons un lecteur complet du Coran avec toutes les sourates, les versets et les traductions. Il sera disponible ici.',
+    today: 'Aujourd’hui',
+    locating: 'Localisation en cours…',
+    location_denied: 'Accès à la position refusé',
+    default_location: 'Position par défaut : La Mecque',
+    calendar_type: 'Type de calendrier',
+    hijri: 'Hijri',
+    gregorian: 'Grégorien',
+    page: 'Page',
+    bookmark: 'Marque-page',
+    previous: 'Précédent',
+    next: 'Suivant',
+    share_copied: 'Lien copié',
+    empty_bookmarks: 'Aucun marque-page pour le moment',
+    notifications_soon: 'Les notifications par section sont en préparation.',
   },
   en: {
     home: 'Home',
@@ -117,6 +184,7 @@ const translations: Record<Language, Record<string, string>> = {
     reached_goal: 'Mashallah! You reached your goal',
     reset: 'Reset',
     add: 'Add',
+    decrease: 'Remove',
     location: 'Location',
     hijri_date: 'Hijri Date',
     loading: 'Loading...',
@@ -134,33 +202,61 @@ const translations: Record<Language, Record<string, string>> = {
     share: 'Share',
     transliteration: 'Transliteration',
     translation: 'Translation',
+    navigation: 'Navigation',
+    brand_tagline: 'Daily companion',
+    more: 'More',
+    more_description: 'All sections and settings',
+    nav_practice: 'Practice',
+    nav_knowledge: 'Knowledge',
+    back: 'Back',
+    skip_to_content: 'Skip to content',
+    copy: 'Copy',
+    copied: 'Copied',
+    copy_failed: 'Could not copy',
+    retry: 'Try again',
+    refresh: 'Refresh',
+    coming_soon: 'Coming soon',
+    coming_soon_desc:
+      'We are building a complete Quran reader with every chapter, verse and translation. It will live here.',
+    today: 'Today',
+    locating: 'Locating you…',
+    location_denied: 'Location access denied',
+    default_location: 'Default location: Mecca',
+    calendar_type: 'Calendar type',
+    hijri: 'Hijri',
+    gregorian: 'Gregorian',
+    page: 'Page',
+    bookmark: 'Bookmark',
+    previous: 'Previous',
+    next: 'Next',
+    share_copied: 'Link copied',
+    empty_bookmarks: 'No bookmarks yet',
+    notifications_soon: 'Per-section notifications are still being built.',
   },
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('en')
-  const [mounted, setMounted] = useState(false)
+export function LanguageProvider({
+  children,
+  initialLanguage,
+}: {
+  children: React.ReactNode
+  initialLanguage: Language
+}) {
+  const [language, setLanguageState] = useState<Language>(initialLanguage)
 
   useEffect(() => {
-    const saved = localStorage.getItem('language') as Language | null
-    if (saved && ['ar', 'fr', 'en'].includes(saved)) {
-      setLanguageState(saved)
-    }
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem('language', language)
-      document.documentElement.lang = language
-      document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'
-    }
-  }, [language, mounted])
+    document.documentElement.lang = language
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'
+  }, [language])
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang)
+    localStorage.setItem(STORAGE_KEYS.language, lang)
+    writeCookie(COOKIE_KEYS.language, lang)
+    document.documentElement.lang = lang
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
   }
 
   const t = (key: string): string => {

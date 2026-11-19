@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+import defaultTheme from 'tailwindcss/defaultTheme'
 
 const config: Config = {
   darkMode: ['class'],
@@ -6,10 +7,22 @@ const config: Config = {
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './lib/**/*.{js,ts,jsx,tsx}',
+    './data/**/*.{json,ts,tsx}',
     '*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-sans)', ...defaultTheme.fontFamily.sans],
+        display: ['var(--font-display)', 'Newsreader', 'Georgia', 'serif'],
+        arabic: ['var(--font-arabic)', ...defaultTheme.fontFamily.sans],
+        'arabic-display': [
+          'var(--font-arabic-display)',
+          'Traditional Arabic',
+          'serif',
+        ],
+      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
@@ -44,6 +57,21 @@ const config: Config = {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
+        gold: {
+          DEFAULT: 'hsl(var(--gold))',
+          ink: 'hsl(var(--gold-ink))',
+          light: 'hsl(var(--gold-light))',
+          soft: 'hsl(var(--gold-soft))',
+        },
+        ink: {
+          DEFAULT: 'hsl(var(--ink))',
+          deep: 'hsl(var(--ink-deep))',
+        },
+        cream: 'hsl(var(--cream))',
+        paper: {
+          DEFAULT: 'hsl(var(--paper))',
+          deep: 'hsl(var(--paper-deep))',
+        },
         chart: {
           '1': 'hsl(var(--chart-1))',
           '2': 'hsl(var(--chart-2))',

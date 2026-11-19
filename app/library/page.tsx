@@ -1,39 +1,47 @@
 'use client'
 
+import { useState } from 'react'
+import { BookOpen, BookMarked, ChevronRight } from 'lucide-react'
+
 import { useLanguage } from '@/app/context/language-context'
 import { Navigation } from '@/components/navigation'
 import { PageHeader } from '@/components/page-header'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { BookOpen } from 'lucide-react'
-import { useState } from 'react'
 import { PDFViewer } from '@/components/pdf-viewer'
+import { cn } from '@/lib/utils'
 import books from '@/data/books.json'
+
+type Book = (typeof books)[0]
 
 export default function LibraryPage() {
   const { t, language } = useLanguage()
-  const [selectedBook, setSelectedBook] = useState<(typeof books)[0] | null>(null)
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null)
 
-  const getBookTitle = (book: (typeof books)[0]) => {
-    return language === 'ar' ? book.ar : language === 'fr' ? book.fr : book.en
-  }
+  const bookTitle = (book: Book) =>
+    language === 'ar' ? book.ar : language === 'fr' ? book.fr : book.en
 
-  const getBookDescription = (book: (typeof books)[0]) => {
-    return language === 'ar' ? book.description.ar : language === 'fr' ? book.description.fr : book.description.en
-  }
+  const bookDescription = (book: Book) => book.description[language]
 
   if (selectedBook) {
-    return <PDFViewer title={getBookTitle(selectedBook)} totalPages={selectedBook.pages} onClose={() => setSelectedBook(null)} />
+    return (
+      <PDFViewer
+        title={bookTitle(selectedBook)}
+        totalPages={selectedBook.pages}
+        onClose={() => setSelectedBook(null)}
+      />
+    )
   }
 
   return (
-    <main className="min-h-screen pb-28 md:ms-64">
+    <main
+      id="main-content"
+      className="min-h-screen pb-[calc(5.5rem_+_env(safe-area-inset-bottom))] md:ms-64 md:pb-12"
+    >
       <Navigation />
 
-      <PageHeader title={t('library')} gradient="from-rose-600 to-pink-600" icon={BookOpen} />
+      <PageHeader title={t('library')} icon={BookOpen} />
 
-      <div className="p-6 md:p-8 max-w-6xl mx-auto">
-        <p className="text-muted-foreground mb-8">
+      <div className="mx-auto max-w-6xl px-6 py-8 md:px-8">
+        <p className="mb-8 max-w-2xl text-pretty text-sm text-muted-foreground md:text-base">
           {language === 'ar'
             ? 'اختر كتاباً لبدء القراءة'
             : language === 'fr'
@@ -41,44 +49,55 @@ export default function LibraryPage() {
               : 'Choose a book to start reading'}
         </p>
 
-        {/* Books Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {books.map((book) => (
-            <div
+            <button
               key={book.id}
+              type="button"
               onClick={() => setSelectedBook(book)}
-              className="cursor-pointer group"
+              aria-label={`${bookTitle(book)} — ${t('page')} ${book.pages}`}
+              className="group block w-full text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              {/* Book Cover */}
-              <div
-                className={`${book.cover} rounded-lg h-64 flex items-end justify-center p-6 text-white relative overflow-hidden shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2`}
+              <span
+                className={cn(
+                  'relative flex h-60 items-end overflow-hidden rounded-xl p-5 text-white shadow-sm transition-[box-shadow,transform] duration-200 group-hover:-translate-y-1 group-hover:shadow-lg group-active:translate-y-0',
+                  book.cover,
+                )}
               >
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
+                <span className="absolute inset-0 bg-black/35" aria-hidden="true" />
+                <span
+                  className="zellige-night absolute inset-0 opacity-50"
+                  aria-hidden="true"
+                />
 
-                {/* Content */}
-                <div className="relative z-10 text-center space-y-2">
-                  <BookOpen className="w-8 h-8 mx-auto opacity-70" />
-                  <h3 className="font-bold text-lg text-balance">{getBookTitle(book)}</h3>
-                  <p className="text-sm text-white/80">{book.author}</p>
-                </div>
-              </div>
+                <span className="relative z-10 block space-y-1.5">
+                  <BookMarked className="mb-2 h-6 w-6 opacity-80" aria-hidden="true" />
+                  <span className="block text-balance font-display text-lg font-semibold leading-snug">
+                    {bookTitle(book)}
+                  </span>
+                  <span className="block text-xs text-white/80">{book.author}</span>
+                </span>
+              </span>
 
-              {/* Book Info */}
-              <div className="mt-3 space-y-2">
-                <p className="text-sm text-muted-foreground">{getBookDescription(book)}</p>
-                <p className="text-xs text-muted-foreground">
-                  {language === 'ar'
-                    ? `${book.pages} صفحة`
-                    : language === 'fr'
-                      ? `${book.pages} pages`
-                      : `${book.pages} pages`}
-                </p>
-                <Button className="w-full" size="sm">
-                  {language === 'ar' ? 'اقرأ الآن' : language === 'fr' ? 'Lire maintenant' : 'Read Now'}
-                </Button>
-              </div>
-            </div>
+              <span className="mt-3 block space-y-1.5 px-0.5">
+                <span className="block text-sm leading-relaxed text-muted-foreground">
+                  {bookDescription(book)}
+                </span>
+                <span className="flex items-center justify-between gap-2 text-xs">
+                  <span className="text-muted-foreground">
+                    {book.pages}{' '}
+                    {language === 'ar' ? 'صفحة' : language === 'fr' ? 'pages' : 'pages'}
+                  </span>
+                  <span className="inline-flex items-center gap-1 font-medium text-gold-ink dark:text-gold-light">
+                    {language === 'ar' ? 'اقرأ' : language === 'fr' ? 'Lire' : 'Read'}
+                    <ChevronRight
+                      className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </span>
+              </span>
+            </button>
           ))}
         </div>
       </div>

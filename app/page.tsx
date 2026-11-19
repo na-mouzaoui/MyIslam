@@ -1,95 +1,90 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { ChevronRight, Clock } from 'lucide-react'
+
 import { useLanguage } from './context/language-context'
 import { Navigation } from '@/components/navigation'
-import Link from 'next/link'
 import { Card } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
 import {
-  BookOpen,
-  Clock,
-  Compass,
-  Sparkles,
-  Newspaper,
-  Library,
-  MoonStar,
-  ChevronRight,
-} from 'lucide-react'
+  KNOWLEDGE_SECTIONS,
+  PRACTICE_SECTIONS,
+  TONES,
+  type SectionMeta,
+} from '@/lib/sections'
+import { cn } from '@/lib/utils'
 
-const SECTIONS = [
-  {
-    id: 'quran',
-    href: '/quran',
-    icon: BookOpen,
-    labelKey: 'quran',
-    color: 'from-emerald-500 to-teal-500',
-    desc: { ar: 'اقرأ وتدبّر', fr: 'Lire et méditer', en: 'Read & reflect' },
-  },
-  {
-    id: 'duas',
-    href: '/duas',
-    icon: Sparkles,
-    labelKey: 'duas',
-    color: 'from-blue-500 to-cyan-500',
-    desc: { ar: 'أدعية مختارة', fr: 'Invocations choisies', en: 'Selected supplications' },
-  },
-  {
-    id: 'prayer_times',
-    href: '/prayer-times',
-    icon: Clock,
-    labelKey: 'prayer_times',
-    color: 'from-amber-500 to-orange-500',
-    desc: { ar: 'مواقيت دقيقة', fr: 'Horaires précis', en: 'Accurate timings' },
-  },
-  {
-    id: 'library',
-    href: '/library',
-    icon: Library,
-    labelKey: 'library',
-    color: 'from-rose-500 to-pink-500',
-    desc: { ar: 'كتب ومراجع', fr: 'Livres & références', en: 'Books & references' },
-  },
-  {
-    id: 'qibla',
-    href: '/qibla',
-    icon: Compass,
-    labelKey: 'qibla',
-    color: 'from-purple-500 to-indigo-500',
-    desc: { ar: 'اتجاه القبلة', fr: 'Direction de la Qibla', en: 'Qibla direction' },
-  },
-  {
-    id: 'zikr',
-    href: '/zikr',
-    icon: Sparkles,
-    labelKey: 'zikr',
-    color: 'from-green-500 to-emerald-500',
-    desc: { ar: 'عدّ وذكر', fr: 'Compter & invoquer', en: 'Count & remember' },
-  },
-  {
-    id: 'news',
-    href: '/news',
-    icon: Newspaper,
-    labelKey: 'news',
-    color: 'from-slate-500 to-zinc-600',
-    desc: { ar: 'مقالات ومواضيع', fr: 'Articles & sujets', en: 'Articles & topics' },
-  },
-]
+const LOCALES: Record<string, string> = {
+  ar: 'ar-u-ca-gregory',
+  fr: 'fr-FR',
+  en: 'en-GB',
+}
+
+function SectionCard({ section, className }: { section: SectionMeta; className?: string }) {
+  const { t, language } = useLanguage()
+  const Icon = section.icon
+  const tone = TONES[section.tone]
+
+  return (
+    <Link
+      href={section.href}
+      className={cn(
+        'group flex flex-col justify-between gap-6 rounded-2xl border border-border/60 bg-card p-5 text-card-foreground shadow-sm',
+        'transition-[transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-0.5 hover:border-border hover:shadow-md active:translate-y-0',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        className,
+      )}
+    >
+      <span
+        className={cn('flex h-11 w-11 items-center justify-center rounded-xl', tone.soft, tone.text)}
+        aria-hidden="true"
+      >
+        <Icon className="h-5 w-5" />
+      </span>
+
+      <span className="block">
+        <span className="flex items-center justify-between gap-2">
+          <span className="text-base font-semibold tracking-tight">{t(section.labelKey)}</span>
+          <ChevronRight
+            className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+            aria-hidden="true"
+          />
+        </span>
+        <span className="mt-1 block text-sm text-muted-foreground">{section.desc[language]}</span>
+      </span>
+    </Link>
+  )
+}
 
 export default function Page() {
   const { t, language } = useLanguage()
+  const [today, setToday] = useState('')
+
+  // unslop-ignore DERIVED_STATE_USEEFFECT -- the locale date is resolved after hydration to avoid a server/client timezone mismatch
+  useEffect(() => {
+    setToday(
+      new Intl.DateTimeFormat(LOCALES[language] ?? 'en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      }).format(new Date()),
+    )
+  }, [language])
 
   const title =
-    language === 'ar' ? 'الرفيق الإسلامي' : language === 'fr' ? 'Le Compagnon Islamique' : 'Islamic Companion'
+    language === 'ar'
+      ? 'الرفيق الإسلامي'
+      : language === 'fr'
+        ? 'Le Compagnon Islamique'
+        : 'Islamic Companion'
 
   const subtitle =
     language === 'ar'
-      ? 'رفيقك في ممارسة العبادات والأذكار'
+      ? 'مواقيت الصلاة، القبلة، الذكر والقرآن في مكان واحد.'
       : language === 'fr'
-        ? 'Votre compagnon pour pratiquer les adorations et les invocations'
-        : 'Your companion for Islamic practice'
-
-  const sectionsLabel =
-    language === 'ar' ? 'الأقسام الرئيسية' : language === 'fr' ? 'Sections principales' : 'Main Sections'
+        ? 'Les horaires de prière, la Qibla, le zikr et le Coran au même endroit.'
+        : 'Prayer times, Qibla, zikr and the Quran in one place.'
 
   const bismillah =
     language === 'ar'
@@ -100,86 +95,150 @@ export default function Page() {
 
   const hint =
     language === 'ar'
-      ? 'اختر القسم الذي تريد لتبدأ رحلتك الروحية'
+      ? 'اختر قسماً لتبدأ'
       : language === 'fr'
-        ? 'Choisissez une section pour commencer votre voyage spirituel'
-        : 'Choose a section to begin your spiritual journey'
+        ? 'Choisissez une section pour commencer'
+        : 'Choose a section to begin'
+
+  const prayerTimes = PRACTICE_SECTIONS.find((section) => section.id === 'prayer_times')
+  const otherPractice = PRACTICE_SECTIONS.filter((section) => section.id !== 'prayer_times')
 
   return (
-    <main className="min-h-screen pb-28 md:ms-64">
+    <main id="main-content" className="min-h-screen pb-[calc(5.5rem_+_env(safe-area-inset-bottom))] md:ms-64 md:pb-12">
       <Navigation />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-teal-700 text-white">
-        <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-30" aria-hidden="true" />
-        <div className="absolute -end-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" aria-hidden="true" />
-
-        <div className="relative z-10 mx-auto max-w-6xl px-6 py-12 md:px-8 md:py-20">
-          <span className="animate-fade-up inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-medium ring-1 ring-inset ring-white/25">
-            <MoonStar className="h-3.5 w-3.5" />
-            Islamic Companion
-          </span>
-
-          <h1 className="animate-fade-up mt-5 text-4xl font-extrabold tracking-tight text-balance md:text-5xl">
+      <section className="relative border-b border-border/60 dark:border-border/40">
+        <div className="relative z-10 mx-auto max-w-6xl px-6 pb-10 pt-12 md:px-8 md:pb-14 md:pt-16">
+          <h1 className="animate-fade-up text-balance font-display text-4xl font-semibold tracking-tight md:text-5xl">
             {title}
           </h1>
-          <p className="animate-fade-up mt-3 max-w-2xl text-lg text-emerald-50/90">{subtitle}</p>
+          <p className="animate-fade-up mt-3 max-w-xl text-pretty text-base text-muted-foreground md:text-lg dark:text-cream/70">
+            {subtitle}
+          </p>
+          {today ? (
+            <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-gold/15 px-3 py-1 text-xs font-medium text-gold-ink ring-1 ring-inset ring-gold/30 dark:text-gold-light">
+              <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="capitalize">{today}</span>
+            </p>
+          ) : (
+            <p className="mt-5 inline-flex min-h-[26px] items-center" aria-hidden="true" />
+          )}
         </div>
       </section>
 
-      {/* Quick Access Grid */}
-      <section className="mx-auto max-w-6xl px-6 py-10 md:px-8">
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <h2 className="text-2xl font-bold tracking-tight">{sectionsLabel}</h2>
-          <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-            {SECTIONS.length}
-          </span>
-        </div>
+      <div>
+        <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 md:px-8 lg:grid-cols-3">
+        <section aria-labelledby="practice-heading" className="lg:col-span-2">
+          <h2
+            id="practice-heading"
+            className="mb-4 text-balance text-xl font-semibold tracking-tight"
+          >
+            {t('nav_practice')}
+          </h2>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {SECTIONS.map((section) => {
-            const Icon = section.icon
-            return (
-              <Link key={section.id} href={section.href} className="group">
-                <Card className="h-full p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-1 hover:ring-emerald-500/20">
-                  <div className="flex items-center gap-4">
-                    <span
-                      className={cn(
-                        'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-md transition-transform duration-300 group-hover:scale-105',
-                        section.color,
-                      )}
-                    >
-                      <Icon className="h-6 w-6" />
-                    </span>
-
-                    <div className="min-w-0 flex-1">
-                      <h3 className="truncate font-semibold">{t(section.labelKey)}</h3>
-                      <p className="truncate text-sm text-muted-foreground">
-                        {section.desc[language as 'ar' | 'fr' | 'en']}
-                      </p>
-                    </div>
-
-                    <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
-                  </div>
-                </Card>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {prayerTimes ? (
+              <Link
+                href={prayerTimes.href}
+                className="group flex items-center gap-4 rounded-2xl border border-border/60 bg-card p-5 text-card-foreground shadow-sm transition-[box-shadow,border-color] duration-200 hover:border-border hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:col-span-3"
+              >
+                <span
+                  className={cn(
+                    'flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl',
+                    TONES[prayerTimes.tone].soft,
+                    TONES[prayerTimes.tone].text,
+                  )}
+                  aria-hidden="true"
+                >
+                  <Clock className="h-7 w-7" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-base font-semibold tracking-tight">
+                    {t(prayerTimes.labelKey)}
+                  </span>
+                  <span className="mt-0.5 block text-sm text-muted-foreground">
+                    {prayerTimes.desc[language]}
+                  </span>
+                </span>
+                <ChevronRight
+                  className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+                  aria-hidden="true"
+                />
               </Link>
-            )
-          })}
-        </div>
-      </section>
+            ) : null}
 
-      {/* Islamic Greeting */}
+            {otherPractice.map((section) => (
+              <SectionCard key={section.id} section={section} />
+            ))}
+          </div>
+        </section>
+
+        <section aria-labelledby="knowledge-heading">
+          <h2
+            id="knowledge-heading"
+            className="mb-4 text-balance text-xl font-semibold tracking-tight"
+          >
+            {t('nav_knowledge')}
+          </h2>
+
+          <div className="divide-y divide-border/60 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
+            {KNOWLEDGE_SECTIONS.map((section) => {
+              const Icon = section.icon
+              return (
+                <Link
+                  key={section.id}
+                  href={section.href}
+                  className="group flex items-center gap-3 px-4 py-4 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                >
+                  <span
+                    className={cn(
+                      'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
+                      TONES[section.tone].soft,
+                      TONES[section.tone].text,
+                    )}
+                    aria-hidden="true"
+                  >
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">
+                      {t(section.labelKey)}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {section.desc[language]}
+                    </span>
+                  </span>
+                  <ChevronRight
+                    className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+                    aria-hidden="true"
+                  />
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+        </div>
+
       <section className="mx-auto max-w-6xl px-6 pb-12 md:px-8">
-        <Card className="relative overflow-hidden border-emerald-200/60 bg-gradient-to-r from-emerald-50 to-teal-50 p-8 text-center dark:border-emerald-800/50 dark:from-emerald-950 dark:to-teal-950">
-          <div className="pattern-overlay pointer-events-none absolute inset-0 opacity-[0.05]" aria-hidden="true" />
-          <div className="relative z-10 space-y-3">
-            <p className="text-xl font-semibold text-emerald-700 text-balance md:text-2xl dark:text-emerald-300">
+        <Card className="relative overflow-hidden border-gold/25 bg-gradient-to-br from-paper-deep to-paper p-8 text-center dark:border-gold/20 dark:from-ink dark:to-ink-deep">
+          <div
+            className="zellige-card pointer-events-none absolute inset-0 opacity-[0.12] dark:opacity-[0.06]"
+            aria-hidden="true"
+          />
+          <div className="relative z-10 space-y-2">
+            <p
+              className={cn(
+                'text-balance text-2xl leading-relaxed text-gold-ink md:text-3xl dark:text-gold-light',
+                language === 'ar' && 'font-arabic-display',
+              )}
+            >
               {bismillah}
             </p>
-            <p className="text-sm text-emerald-600 dark:text-emerald-400">{hint}</p>
+            <p className="text-sm text-gold-ink/80 dark:text-gold-light/80">{hint}</p>
           </div>
         </Card>
       </section>
+      </div>
     </main>
   )
 }
